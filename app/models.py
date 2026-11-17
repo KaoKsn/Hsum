@@ -44,7 +44,7 @@ class Employee(Person):
     """Base class for all hospital employees."""
 
     dept: str
-    salary: float
+    salary: float | None = None
 
 
 # MANAGER CLASS
