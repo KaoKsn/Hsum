@@ -302,3 +302,16 @@ class PaymentRequest(BaseModel):
             raise ValueError("Card has Expired")
 
         return (month, year)
+
+
+# JWT Endpoints
+class LoginRequest(BaseModel):
+    id: int
+    password: str = Field(min_length=1, max_length=72)
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
+    id: int
