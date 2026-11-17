@@ -2,6 +2,11 @@ import sqlite3
 import bcrypt
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
 
 from app.database import get_db
 from app.auth import require_roles
@@ -186,3 +191,34 @@ async def update_receptionist_contact(
         )
 
     return {"message": "Receptionist contact details updated successfully."}
+
+
+@router.delete("/{receptionist_id}/deactivate")
+def deactivate_receptionist(
+    receptionist_id: int,
+    current_user: dict = Depends(require_roles("manager")),  # Manager
+    db: sqlite3.Connection = Depends(get_db),
+):
+    try:
+        with db:
+            cursor = db.execute(
+                """
+                UPDATE users
+                SET is_active=0
+                WHERE id = ? and role = 'receptionist'
+                AND is_active = 1
+                """,
+                (receptionist_id,),
+            )
+
+            if cursor.rowcount == 0:
+                raise HTTPException(
+                    status_code=HTTP_404_NOT_FOUND,
+                    detail="Receptionist not found or is already inactive",
+                )
+    except sqlite3.Error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Couldn not deactive the receptionist account",
+        )
+    return {"message": "Receptionist deactivated successfully."}
