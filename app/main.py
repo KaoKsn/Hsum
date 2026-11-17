@@ -1,79 +1,133 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse, JSONResponse
 from datetime import datetime
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from starlette.status import (
-    HTTP_404_NOT_FOUND,
+    HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
-from app.routes import doctors, patients, receptionists, payments, managers
 from app.database import check_database, initialize_database
+from app.routes import (
+    appointments,
+    doctors,
+    managers,
+    patients,
+    receptionists,
+    payments,
+)
 
 
+# Application startup and shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Create database tables when the application starts.
+    initialize_database()
 
-    initialize_database()  # Initialize the database when the server starts.
-
+    # Verify that the database is accessible.
     if not check_database():
         raise RuntimeError("Database connection failed!")
 
     yield
 
-    print("HSum Backend Shutting down..")
+    # Add shutdown cleanup here if the application needs it later.
 
 
 app = FastAPI(
     title="HSum FastAPI Backend",
     version="v0.1.0",
-    description="""HSum FastAPI Backend provides many API endpoints for doctors, patients, receptionists, payments, and managers. It also provides some Utility Endpoints like `health`.
-    A GET request to `/` returns a `/health` like message""",
+    description=(
+        "HSum provides API endpoints for doctors, patients, "
+        "receptionists, appointments, payments, and managers. "
+        "It also provides utility endpoints such as health checks."
+    ),
     summary="HSum FastAPI Backend",
     lifespan=lifespan,
 )
 
 
 # Utility Endpoints
-@app.get("/")
+@app.get("/", status_code=HTTP_200_OK)
 async def index():
-    return JSONResponse(
-        content={
-            "message": "Welcome! HSum Backend",
-            "time": datetime.now().isoformat(),
-        },
-        status_code=200,
-        headers={"Content-Type": "application/json"},
-    )
+    return {
+        "message": "Welcome! HSum Backend",
+        "time": datetime.now().astimezone().isoformat(),
+    }
 
 
-@app.get("/health")
+@app.get("/health", status_code=HTTP_200_OK)
 async def health():
-    return {"status": "healthy", "code": 200, "time": datetime.now().isoformat()}
+    database_status = check_database()
+
+    if not database_status:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "message": "Database connection failed",
+            },
+        )
+
+    return {
+        "status": "healthy",
+        "code": HTTP_200_OK,
+        "database": "connected",
+        "time": datetime.now().astimezone().isoformat(),
+    }
 
 
-# API routers for doctors, patients, receptionists, and managers.
-app.include_router(doctors.router, prefix="/doctors", tags=["Doctor Endpoints"])
-
-app.include_router(patients.router, prefix="/patients", tags=["Patient Endpoints"])
-
+# API Routers
 app.include_router(
-    receptionists.router, prefix="/receptionists", tags=["Receptionist Endpoints"]
+    doctors.router,
+    prefix="/doctors",
+    tags=["Doctor Endpoints"],
 )
 
-app.include_router(payments.router, prefix="/payments", tags=["Payment Route"])
+app.include_router(
+    patients.router,
+    prefix="/patients",
+    tags=["Patient Endpoints"],
+)
 
-app.include_router(managers.router, prefix="/managers", tags=["Manager Endpoints"])
+app.include_router(
+    receptionists.router,
+    prefix="/receptionists",
+    tags=["Receptionist Endpoints"],
+)
+
+app.include_router(
+    appointments.router,
+    prefix="/appointments",
+    tags=["Appointment Endpoints"],
+)
+
+app.include_router(
+    payments.router,
+    prefix="/payments",
+    tags=["Payment Endpoints"],
+)
+
+app.include_router(
+    managers.router,
+    prefix="/managers",
+    tags=["Manager Endpoints"],
+)
 
 
 # HTTP Exception Handlers
-@app.exception_handler(404)
+@app.exception_handler(HTTP_404_NOT_FOUND)
 async def not_found_handler(request: Request, exc):
     return JSONResponse(
         status_code=HTTP_404_NOT_FOUND,
-        content={"message": "Not found", "path": str(request.url)},
+        content={
+            "message": "Resource not found",
+            "path": str(request.url),
+        },
     )
 
 
@@ -81,7 +135,10 @@ async def not_found_handler(request: Request, exc):
 async def bad_request_handler(request: Request, exc):
     return JSONResponse(
         status_code=HTTP_400_BAD_REQUEST,
-        content={"message": "Bad request", "path": str(request.url)},
+        content={
+            "message": "Bad request",
+            "path": str(request.url),
+        },
     )
 
 
@@ -89,12 +146,15 @@ async def bad_request_handler(request: Request, exc):
 async def unauthenticated_handler(request: Request, exc):
     return JSONResponse(
         status_code=HTTP_401_UNAUTHORIZED,
-        content={"message": "Authentication required", "path": str(request.url)},
+        content={
+            "message": "Authentication required",
+            "path": str(request.url),
+        },
     )
 
 
 @app.exception_handler(HTTP_403_FORBIDDEN)
-async def unauthorized_handler(request: Request, exc):
+async def forbidden_handler(request: Request, exc):
     return JSONResponse(
         status_code=HTTP_403_FORBIDDEN,
         content={
@@ -104,9 +164,12 @@ async def unauthorized_handler(request: Request, exc):
     )
 
 
-@app.exception_handler(500)
+@app.exception_handler(HTTP_500_INTERNAL_SERVER_ERROR)
 async def internal_server_error(request: Request, exc):
     return JSONResponse(
-        status_code=500,
-        content={"message": "Internal Sever Error.", "path": str(request.url)},
+        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "message": "Internal server error",
+            "path": str(request.url),
+        },
     )

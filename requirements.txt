@@ -7,7 +7,7 @@ pydantic[email]
 
 # Authentication and security
 bcrypt==5.0.0
-PyJWT
+PyJWT==2.10.1
 
 # PDF report generation
 weasyprint==70.0
