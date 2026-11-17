@@ -1,0 +1,31 @@
+# Backend
+fastapi==0.163.2
+uvicorn[standard]==0.54.0
+
+# Data validation
+pydantic[email]
+
+# Authentication and security
+bcrypt==5.0.0
+PyJWT
+
+# PDF report generation
+weasyprint==70.0
+
+# HTML and Markdown processing
+Markdown==3.11.3
+nh3==0.3.8
+
+# HTTP requests (LLM API communication)
+requests==2.34.2
+
+# Environment variables
+python-dotenv==1.2.4
+
+# Frontend templates and form handling
+jinja2
+python-multipart
+
+# Testing
+httpx
+pytest
