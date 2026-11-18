@@ -61,10 +61,19 @@ async def create_doctor(
                 ),
             )
 
-    except sqlite3.IntegrityError:
+    except sqlite3.IntegrityError as e:
+
+        error = str(e)
+
+        if "users.email" in error:
+            detail = "This email address is already registered"
+        elif "users.phone" in error:
+            detail = "This phone number is already registered"
+        else:
+            detail = "A databse constraint was violated"
         raise HTTPException(
             status_code=409,
-            detail="An account with this email or phone number already exists.",
+            detail=detail,
         )
 
     except sqlite3.Error:
