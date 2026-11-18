@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS doctor_patient_assignments (
 );
 
 
--- 8. MEDICAL RECORDS TABLE
+-- 9. MEDICAL RECORDS TABLE
 
 CREATE TABLE IF NOT EXISTS medical_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -202,8 +202,19 @@ CREATE TABLE IF NOT EXISTS medical_records (
         REFERENCES appointments(id)
 );
 
+-- 9.
+CREATE TABLE IF NOT EXISTS patient_summaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
+    doctor_id INTEGER NOT NULL,
+    summary_json TEXT NOT NULL,
+    generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
--- 9. INDEXES
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+);
+
+-- 10. INDEXES
 
 CREATE INDEX IF NOT EXISTS idx_users_email
 ON users(email);
@@ -225,3 +236,6 @@ ON medical_records(patient_id);
 
 CREATE INDEX IF NOT EXISTS idx_assignments_doctor
 ON doctor_patient_assignments(doctor_id);
+
+CREATE INDEX IF NOT EXISTS idx_patient_summaries_patient
+ON patient_summaries(patient_id);
