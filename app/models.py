@@ -144,19 +144,6 @@ class ReceptionistResponse(BaseModel):
     salary: Optional[float] = None
 
 
-# LOGIN MODELS
-class LoginRequest(BaseModel):
-    id: str
-    password: str
-
-
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    role: UserRole
-    id: int
-
-
 # APPOINTMENT MODELS
 class AppointmentCreate(BaseModel):
     """Payload received when a patient requests an appointment."""
