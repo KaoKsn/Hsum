@@ -316,7 +316,7 @@ class PatientSummary(BaseModel):
     We explicity give the LLM instructions to return the answer in this format to us.
     """
 
-    patient_id: str
+    patient_id: int
     generated_summary: str
     known_allergies: list[str] = Field(default_factory=list)
     current_medications: list[str] = Field(default_factory=list)
