@@ -308,3 +308,19 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     role: str
     id: int
+
+
+# LLM Output Validation
+class PatientSummary(BaseModel):
+    """
+    We explicity give the LLM instructions to return the answer in this format to us.
+    """
+
+    patient_id: str
+    generated_summary: str
+    known_allergies: list[str] = Field(default_factory=list)
+    current_medications: list[str] = Field(default_factory=list)
+    relevant_history: list[str] = Field(default_factory=list)
+    recent_events: list[str] = Field(default_factory=list)
+    uncertainties: list[str] = Field(default_factory=list)
+    clinician_review_required: bool
