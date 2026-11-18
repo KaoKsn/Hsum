@@ -148,14 +148,14 @@ class ReceptionistResponse(BaseModel):
 class AppointmentCreate(BaseModel):
     """Payload received when a patient requests an appointment."""
 
-    specialization: str
+    specialization: str = Field(min_length=2, max_length=100)
     appointment_date: datetime
 
 
 class AppointmentAssign(BaseModel):
     """Payload used by the receptionist to assign a doctor."""
 
-    doctor_id: int
+    doctor_id: int = Field(gt=0)
 
 
 class AppointmentResponse(BaseModel):
@@ -172,6 +172,12 @@ class AppointmentResponse(BaseModel):
     status: AppointmentStatus
 
     created_at: Optional[datetime] = None
+
+
+class AppointmentStatusUpdate(BaseModel):
+    """Payload used by a doctor to update appointment status."""
+
+    status: AppointmentStatus
 
 
 # DOCTOR-PATIENT ASSIGNMENT MODELS

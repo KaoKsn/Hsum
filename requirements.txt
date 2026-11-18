@@ -13,7 +13,7 @@ PyJWT==2.10.1
 weasyprint==70.0
 
 # HTML and Markdown processing
-Markdown==3.11.3
+markdown-it-py==4.3.0
 nh3==0.3.8
 
 # HTTP requests (LLM API communication)
