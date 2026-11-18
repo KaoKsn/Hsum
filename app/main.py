@@ -20,6 +20,7 @@ from app.routes import (
     patients,
     receptionists,
     payments,
+    auth,
 )
 
 
@@ -82,6 +83,8 @@ async def health():
 
 
 # API Routers
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+
 app.include_router(
     doctors.router,
     prefix="/doctors",

@@ -29,7 +29,7 @@ def get_connection() -> sqlite3.Connection:
 
     DATABASE_DIR.mkdir(parents=True, exist_ok=True)
 
-    conn = sqlite3.connect(DATABASE_PATH, timeout=10.0)
+    conn = sqlite3.connect(DATABASE_PATH, timeout=10.0, check_same_thread=False)
 
     # Return rows as dictionary-like objects
     conn.row_factory = sqlite3.Row
