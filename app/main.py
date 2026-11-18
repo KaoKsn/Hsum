@@ -3,6 +3,8 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from starlette.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
@@ -19,7 +21,6 @@ from app.routes import (
     managers,
     patients,
     receptionists,
-    payments,
     auth,
 )
 
@@ -110,12 +111,6 @@ app.include_router(
 )
 
 app.include_router(
-    payments.router,
-    prefix="/payments",
-    tags=["Payment Endpoints"],
-)
-
-app.include_router(
     managers.router,
     prefix="/managers",
     tags=["Manager Endpoints"],
@@ -123,54 +118,29 @@ app.include_router(
 
 
 # HTTP Exception Handlers
-@app.exception_handler(HTTP_404_NOT_FOUND)
-async def not_found_handler(request: Request, exc):
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    messages = {
+        400: "Bad request",
+        401: "Authentication required",
+        403: "You are not authorized to access this resource",
+        404: "Resource not found",
+    }
+
     return JSONResponse(
-        status_code=HTTP_404_NOT_FOUND,
+        status_code=exc.status_code,
         content={
-            "message": "Resource not found",
+            "message": messages.get(exc.status_code, "Request failed"),
+            "detail": exc.detail,
             "path": str(request.url),
         },
     )
 
 
-@app.exception_handler(HTTP_400_BAD_REQUEST)
-async def bad_request_handler(request: Request, exc):
+@app.exception_handler(Exception)
+async def unexpected_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
-        status_code=HTTP_400_BAD_REQUEST,
-        content={
-            "message": "Bad request",
-            "path": str(request.url),
-        },
-    )
-
-
-@app.exception_handler(HTTP_401_UNAUTHORIZED)
-async def unauthenticated_handler(request: Request, exc):
-    return JSONResponse(
-        status_code=HTTP_401_UNAUTHORIZED,
-        content={
-            "message": "Authentication required",
-            "path": str(request.url),
-        },
-    )
-
-
-@app.exception_handler(HTTP_403_FORBIDDEN)
-async def forbidden_handler(request: Request, exc):
-    return JSONResponse(
-        status_code=HTTP_403_FORBIDDEN,
-        content={
-            "message": "You are not authorized to access this resource",
-            "path": str(request.url),
-        },
-    )
-
-
-@app.exception_handler(HTTP_500_INTERNAL_SERVER_ERROR)
-async def internal_server_error(request: Request, exc):
-    return JSONResponse(
-        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+        status_code=500,
         content={
             "message": "Internal server error",
             "path": str(request.url),
