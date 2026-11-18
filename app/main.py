@@ -22,6 +22,7 @@ from app.routes import (
     patients,
     receptionists,
     auth,
+    medical_records,
 )
 
 
@@ -114,6 +115,12 @@ app.include_router(
     managers.router,
     prefix="/managers",
     tags=["Manager Endpoints"],
+)
+
+app.include_router(
+    medical_records.router,
+    prefix="/medical-records",
+    tags=["Medical Records"],
 )
 
 

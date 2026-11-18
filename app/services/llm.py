@@ -62,7 +62,7 @@ NEVER omit a key, even when information is unavailable.
 
 patient_id:
 - Copy the patient ID exactly from the supplied patient record.
-- Return it as a string.
+- Return it as a int.
 - Never invent or modify the patient ID.
 
 generated_summary:
@@ -190,10 +190,10 @@ def summarize(payload: dict) -> dict | None:
             return queryGPT(payload, LLM_MODEL, LLM_API_URL, LLM_API_KEY)
 
     except requests.exceptions.RequestException as exc:
-        print(f"API request failed: {exc}")
+        print(f"API request failed: {exc}", file=sys.stderr)
 
     except Exception as exc:
-        print(f"Could not parse the API response: {exc}")
+        print(f"Could not parse the API response: {exc}", file=sys.stderr)
     return None
 
 
@@ -224,8 +224,6 @@ def queryOllama(payload: dict, model: str, url: str):
     content = response.json()["message"]["content"]
 
     data = json.loads(content)
-    print(data)
-
     return validate_summary(data)
 
 
@@ -250,12 +248,10 @@ def queryGPT(payload: dict, model: str, url: str, api_key: str):
         json=request_payload,
         timeout=(5, 120),
     )
+
     response.raise_for_status()
 
     content = response.json()["choices"][0]["message"]["content"]
-
-    print("RAW LLM RESPONSE:")
-    print(repr(content))
 
     data = json.loads(content)
     return validate_summary(data)
