@@ -10,7 +10,15 @@ import helpers.creation_and_login as creation_and_login
 from helpers.setup import init_db
 from helpers.creation_and_login import login
 
-db_path = "../database/hospital.db"
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DATABASE_DIR = BASE_DIR / "database"
+
+db_path = DATABASE_DIR / "hospital.db"
+
+INIT_SQL_PATH = DATABASE_DIR / "init.sql"
 
 
 def create_demo_manager() -> tuple[int, str]:
