@@ -21,11 +21,3 @@ requests==2.34.2
 
 # Environment variables
 python-dotenv==1.2.4
-
-# Frontend templates and form handling
-jinja2
-python-multipart
-
-# Testing
-httpx
-pytest

@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
+import sys
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -36,9 +37,13 @@ async def lifespan(app: FastAPI):
     if not check_database():
         raise RuntimeError("Database connection failed!")
 
-    yield
-
+    try:
+        yield
+    except KeyboardInterrupt:
+        print("SIGTERM caught, Bye..")
+        return
     # Add shutdown cleanup here if the application needs it later.
+    print("Bye..")
 
 
 app = FastAPI(

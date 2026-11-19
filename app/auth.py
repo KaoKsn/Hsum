@@ -21,6 +21,9 @@ if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY is missing from environment variables.")
 
 
+if ACCESS_TOKEN_EXPIRE_MINUTES <= 0:
+    raise RuntimeError("ACCESS_TOKEN_EXPIRE_MINUTES must be positive.")
+
 # Extracts the Bearer token from the Authorization header.
 """
 GET /patients/me HTTP/1.1
