@@ -1,11 +1,12 @@
 import sqlite3
-import bcrypt
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database import get_db
 from app.models import LoginRequest, LoginResponse
 from app.auth import create_access_token
+
+from ..services.security import passwordHasher, PasswordTooLongError
 
 router = APIRouter()
 
@@ -35,10 +36,12 @@ async def login(body: LoginRequest, db: sqlite3.Connection = Depends(get_db)):
         )
 
     # Check password
-    password_matches = bcrypt.checkpw(
-        body.password.encode("utf-8"), user["password_hash"].encode("utf-8")
-    )
-
+    try:
+        password_matches = passwordHasher.check_password(
+            body.password, user["password_hash"]
+        )
+    except PasswordTooLongError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
     if not password_matches:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID or password."

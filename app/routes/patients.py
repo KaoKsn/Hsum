@@ -1,11 +1,12 @@
 import sqlite3
-import bcrypt
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database import get_db
 from app.models import Patient
 from app.auth import get_current_user, require_roles
+
+from ..services.security import PasswordTooLongError, passwordHasher
 
 router = APIRouter()
 
@@ -21,10 +22,10 @@ async def add_patient(
     patient: Patient,
     db: sqlite3.Connection = Depends(get_db),
 ):
-    password_hash = bcrypt.hashpw(
-        patient.password.encode("utf-8"),
-        bcrypt.gensalt(),
-    ).decode("utf-8")
+    try:
+        password_hash = passwordHasher.hash(patient.password)
+    except PasswordTooLongError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
 
     try:
         with db:

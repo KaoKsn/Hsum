@@ -1,5 +1,4 @@
 import sqlite3
-import bcrypt
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.status import (
@@ -12,6 +11,8 @@ from app.database import get_db
 from app.auth import require_roles
 from app.models import Receptionist
 
+from ..services.security import passwordHasher, PasswordTooLongError
+
 router = APIRouter()
 
 
@@ -22,14 +23,10 @@ async def create_receptionist(
     current_user: dict = Depends(require_roles("manager")),
     db: sqlite3.Connection = Depends(get_db),
 ):
-    if len(receptionist.password.encode("utf-8")) > 72:
-        raise HTTPException(
-            status_code=400, detail="Password must not exceed 72 bytes."
-        )
-
-    password_hash = bcrypt.hashpw(
-        receptionist.password.encode("utf-8"), bcrypt.gensalt()
-    ).decode("utf-8")
+    try:
+        password_hash = passwordHasher.hash(receptionist.password)
+    except PasswordTooLongError as e:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=f"e")
 
     try:
         with db:
