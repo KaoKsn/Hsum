@@ -7,7 +7,7 @@ import sqlite3, bcrypt
 server_url = "http://localhost:3000"
 
 import helpers.creation_and_login as creation_and_login
-from helpers.init import init_db
+from helpers.setup import init_db
 from helpers.creation_and_login import login
 
 db_path = "../database/hospital.db"
