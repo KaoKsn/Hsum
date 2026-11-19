@@ -1,0 +1,41 @@
+services:
+  api:
+    image: hsum:${TAG:-release}
+    container_name: hsum_backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://0.0.0.0:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hsum_net
+    volumes:
+      - healthData:/app/database
+
+  proxy:
+    image: docker.io/library/nginx:1.31-alpine
+    container_name: hsum_proxy
+    restart: always
+    networks:
+      - hsum_net
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "nginxLogs:/var/log/nginx"
+
+networks:
+  hsum_net:
+
+volumes:
+  nginxLogs:
+  healthData:
